@@ -1,0 +1,101 @@
+---
+title: "Newport vs. State Homeless Data"
+author: "Matthew Moore"
+date: "4/21/2020"
+output: html_document
+---
+
+## How does Newport School District compare to the State of Arkansas overall when it comes to homelessness? Let's find out.
+
+Install libraries
+```{r include=FALSE}
+library(tidyverse)
+library(rio)
+library(janitor)
+library(formattable)
+```
+Import and filter 2018/2019 Data
+```{r}
+zData1819 <- rio::import("https://github.com/mrm081/busdrivers/blob/master/AR_School_Homeless_Data1819.xlsx?raw=true", which = "Data")
+zData1819 <- janitor::clean_names(zData1819)
+zData1819[3:16] <- lapply(zData1819[3:16], as.numeric)
+Schools1819 <- zData1819 %>% 
+  select(district_name, district_percent_homeless) %>% 
+  filter(district_name == "Arkansas Overall" | district_name == "NEWPORT SCHOOL DISTRICT")
+colnames(Schools1819)[2] <- c("homeless_pct_1819")
+head(Schools1819)
+```
+Import and Filter 2014/2015 Data
+```{r}
+zData1415 <- rio::import("https://github.com/mrm081/busdrivers/blob/master/AR_School_Homeless_data1415.xlsx?raw=true", which = "Data")
+zData1415 <- janitor::clean_names(zData1415)
+zData1415[3:16] <- lapply(zData1415[3:16], as.numeric)
+Schools1415 <- zData1415 %>% 
+  select(district_name, district_percent_homeless) %>% 
+  filter(district_name == "Arkansas Overall" | district_name == "NEWPORT SCHOOL DISTRICT")
+colnames(Schools1415)[2] <- c("homeless_pct_1415")
+head(Schools1415)
+```
+
+Join Data together
+```{r}
+CompareData<- Schools1415 %>% 
+  inner_join(Schools1819, by=("district_name"))
+head(CompareData)
+```
+Find percentage change between 2014/2015 school year to 2018/2019 school year.
+```{r}
+CompareData <- CompareData %>% 
+mutate(PctChg = (homeless_pct_1819 - homeless_pct_1415)/homeless_pct_1819) 
+CompareData$PctChg <- percent(CompareData$PctChg)
+CompareData$homeless_pct_1415 <- percent(CompareData$homeless_pct_1415)
+CompareData$homeless_pct_1819 <- percent(CompareData$homeless_pct_1819)
+head(CompareData)
+```
+Graphing the Percentage change
+
+```{r}
+CompareData %>% 
+  ggplot(aes(x = district_name, y = PctChg, fill = PctChg)) +
+geom_col(position = "dodge", show.legend = FALSE) +
+  theme(axis.text.x = element_text(angle = 90)) +
+geom_text(aes(label = PctChg), hjust = -.5, vjust = -.5, size = 3.5) +
+  expand_limits(x = 2, y = .35) +
+  coord_flip() +
+  labs(title = "Percent Change in Homeless Students",
+       subtitle = "14/15 School Year - 18/19 School Year",
+       caption = "Graphic by Matthew Moore - 4/21/20",
+       y="Percentage Change",
+       x="School")
+```
+
+This chart is not very representative of the data, so let's try another couple of graphs.
+```{r}
+CompareData %>% 
+  ggplot(aes(x = district_name, y = homeless_pct_1415, fill = homeless_pct_1415)) +
+geom_col(position = "dodge", show.legend = FALSE) +
+  theme(axis.text.x = element_text(angle = 90)) +
+geom_text(aes(label = homeless_pct_1415), hjust = -.5, vjust = -.5, size = 3.5) +
+  expand_limits(x = 2, y = .11) +
+    coord_flip() +
+  labs(title = "Homeless Students Percentage",
+       subtitle = "2014/2015 School Year",
+       caption = "Graphic by Matthew Moore - 4/21/20",
+       y="Percentage Change",
+       x="")
+```
+
+```{r}
+CompareData %>% 
+  ggplot(aes(x = district_name, y = homeless_pct_1819, fill = homeless_pct_1819)) +
+geom_col(position = "dodge", show.legend = FALSE) +
+  theme(axis.text.x = element_text(angle = 90)) +
+geom_text(aes(label = homeless_pct_1819), hjust = -.5, vjust = -.5, size = 3.5) +
+  expand_limits(x = 2, y = .13) +
+    coord_flip() +
+  labs(title = "Homeless Students Percentage",
+       subtitle = "2018/2019 School Year",
+       caption = "Graphic by Matthew Moore - 4/21/20",
+       y="Percentage Change",
+       x="")
+```
