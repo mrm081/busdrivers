@@ -44,6 +44,7 @@ PoorestAR %>%
        y="Median Household Income",
        x="")
 ```
+
 Let's look at a few select counties in Arkansas: Washington and Benton in Northwest Arkansas, Pulaski and Faulkner in Central Arkansas, and let's also include the state overall and graph it.
 
 ```{r}
