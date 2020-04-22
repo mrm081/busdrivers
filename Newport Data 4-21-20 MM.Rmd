@@ -99,3 +99,14 @@ geom_text(aes(label = homeless_pct_1819), hjust = -.5, vjust = -.5, size = 3.5) 
        y="Percentage Change",
        x="")
 ```
+Let's try to combine the two
+```{r}
+ggplot(CompareData)+
+  geom_point(aes(x = district_name, y = homeless_pct_1415, color = "Red"))+ 
+  geom_point(aes(x = district_name, y = homeless_pct_1819 )) +
+  labs(title = "Homeless Students Percentage",
+       subtitle = "2018/2019 School Year",
+       caption = "Graphic by Matthew Moore - 4/21/20",
+       y="Percentage Change",
+       x="")
+```
