@@ -11,6 +11,7 @@ library(tidyverse)
 library(rio)
 library(janitor)
 library(knitr)
+library(scales)
 
 #Import Data
 ArkCensus <- rio::import("https://github.com/mrm081/busdrivers/blob/master/USArk_Counties_Poverty_ACS_16_5YR_DP03_Jan_24.xlsx?raw=true", which = "Poverty")
@@ -25,26 +26,33 @@ RichPoor <- ArkCensus %>%
 PoorestAR <- ArkCensus %>% 
   top_n(-11, Median_Househ_Income) %>%
   select(Geography, Pct_Income_to_25k, Median_Househ_Income) %>% 
-  arrange(Median_Househ_Income)
+  arrange((Median_Househ_Income))
+
+glimpse(PoorestAR)
 ```
 According to our data, we see that Jackson County is the 11th poorest county in Arkansas.
 
 Let's see the graph.
+
 ```{r}
-PoorestAR %>% 
+Poor_Counties <- PoorestAR %>%
   ggplot(aes(x = reorder(Geography, -Median_Househ_Income), y = Median_Househ_Income, fill = Median_Househ_Income)) +
   geom_col(position = "dodge", show.legend = FALSE) +
-  theme(axis.text.x = element_text(angle = 90)) +
-  geom_text(aes(label = Median_Househ_Income), hjust = -.25, vjust = 0, size = 3.75) +
-  expand_limits(x = 12, y = 35000) +
+  scale_y_continuous("Median Household Income",
+    breaks = scales::breaks_extended(6),
+    labels = dollar_format(prefix = "$")) +
+  expand_limits(x = 11, y = 31000) +
   coord_flip() +
   labs(title = "Poorest Counties in Arkansas",
        subtitle = "2016 U.S. Census Data",
        caption = "Graphic by Matthew Moore - 4/22/20",
        y="Median Household Income",
        x="")
+Poor_Counties
 ```
-
+```{r}
+ggsave("Poor_Counties.png", device = "png",width=9,height=6, dpi=800)
+```
 Let's look at a few select counties in Arkansas: Washington and Benton in Northwest Arkansas, Pulaski and Faulkner in Central Arkansas, and let's also include the state overall and graph it.
 
 ```{r}
@@ -54,11 +62,12 @@ Select_Counties <- ArkCensus %>%
            Geography=="Faulkner County, Arkansas") %>% 
   select(Geography, Pct_Income_to_25k, Median_Househ_Income)
 
-Select_Counties %>% 
+Counties_Graphic <- Select_Counties %>% 
   ggplot(aes(x = reorder(Geography, -Median_Househ_Income), y = Median_Househ_Income, fill = Median_Househ_Income)) +
   geom_col(position = "dodge", show.legend = FALSE) +
-  theme(axis.text.x = element_text(angle = 90)) +
-  geom_text(aes(label = Median_Househ_Income), hjust = -.25, vjust = 0, size = 3.75) +
+  scale_y_continuous("Median Household Income",
+    breaks = scales::breaks_extended(10),
+    labels = dollar_format(prefix = "$")) +
   expand_limits(x = 6, y = 65000) +
   coord_flip() +
   labs(title = "Select Counties in Arkansas",
@@ -66,4 +75,9 @@ Select_Counties %>%
        caption = "Graphic by Matthew Moore - 4/22/20",
        y="Median Household Income",
        x="")
+Counties_Graphic
+```
+
+```{r}
+ggsave("Counties_Graphic.png", device = "png",width=9,height=6, dpi=800)
 ```

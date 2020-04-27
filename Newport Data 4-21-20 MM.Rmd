@@ -13,15 +13,12 @@ library(tidyverse)
 library(rio)
 library(janitor)
 library(formattable)
-library(knitr)
 ```
 Import and filter 2018/2019 Data
-```{r include=FALSE}
+```{r}
 zData1819 <- rio::import("https://github.com/mrm081/busdrivers/blob/master/AR_School_Homeless_Data1819.xlsx?raw=true", which = "Data")
 zData1819 <- janitor::clean_names(zData1819)
 zData1819[3:16] <- lapply(zData1819[3:16], as.numeric)
-```
-```{r}
 Schools1819 <- zData1819 %>% 
   select(district_name, district_percent_homeless) %>% 
   filter(district_name == "Arkansas Overall" | district_name == "NEWPORT SCHOOL DISTRICT")
@@ -29,12 +26,10 @@ colnames(Schools1819)[2] <- c("homeless_pct_1819")
 head(Schools1819)
 ```
 Import and Filter 2014/2015 Data
-```{r include=FALSE}
+```{r}
 zData1415 <- rio::import("https://github.com/mrm081/busdrivers/blob/master/AR_School_Homeless_data1415.xlsx?raw=true", which = "Data")
 zData1415 <- janitor::clean_names(zData1415)
 zData1415[3:16] <- lapply(zData1415[3:16], as.numeric)
-```
-```{r}
 Schools1415 <- zData1415 %>% 
   select(district_name, district_percent_homeless) %>% 
   filter(district_name == "Arkansas Overall" | district_name == "NEWPORT SCHOOL DISTRICT")
@@ -65,7 +60,7 @@ CompareData %>%
 geom_col(position = "dodge", show.legend = FALSE) +
   theme(axis.text.x = element_text(angle = 90)) +
 geom_text(aes(label = PctChg), hjust = -.5, vjust = -.5, size = 3.5) +
-  expand_limits(x = 2, y = .35) +
+  scale_y_continuous(limits=c(0, .35),labels = scales::percent) +
   coord_flip() +
   labs(title = "Percent Change in Homeless Students",
        subtitle = "14/15 School Year - 18/19 School Year",
@@ -81,12 +76,12 @@ CompareData %>%
 geom_col(position = "dodge", show.legend = FALSE) +
   theme(axis.text.x = element_text(angle = 90)) +
 geom_text(aes(label = homeless_pct_1415), hjust = -.5, vjust = -.5, size = 3.5) +
-  expand_limits(x = 2, y = .11) +
+scale_y_continuous(limits=c(0, .11),labels = scales::percent) +
     coord_flip() +
   labs(title = "Homeless Students Percentage",
        subtitle = "2014/2015 School Year",
-       caption = "Graphic by Matthew Moore - 4/21/20",
-       y="Percentage Change",
+       caption = "Source: Dept. of Education, Graphic by Matthew Moore - 4/21/20",
+       y="Percentage of Homeless Students",
        x="")
 ```
 
@@ -96,11 +91,16 @@ CompareData %>%
 geom_col(position = "dodge", show.legend = FALSE) +
   theme(axis.text.x = element_text(angle = 90)) +
 geom_text(aes(label = homeless_pct_1819), hjust = -.5, vjust = -.5, size = 3.5) +
-  expand_limits(x = 2, y = .13) +
-    coord_flip() +
+scale_y_continuous(limits=c(0, .13),labels = scales::percent) +
+  coord_flip() +
   labs(title = "Homeless Students Percentage",
        subtitle = "2018/2019 School Year",
-       caption = "Graphic by Matthew Moore - 4/21/20",
-       y="Percentage Change",
+       caption = "Source: Dept. of Education, Graphic by Matthew Moore - 4/21/20",
+       y="Percentage of Homeless Students",
        x="")
+```
+
+
+```{r}
+ggsave("Homeless1819.png", device = "png",width=9,height=6, dpi=800)
 ```
